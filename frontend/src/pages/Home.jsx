@@ -8,7 +8,7 @@ import { ArrowRight, Award, Shield, Users, Clock } from "lucide-react";
 
 const Home = () => {
   const stats = [
-    { number: "90+", label: "Years of Experience", icon: Clock },
+    { number: "15+", label: "Years of Experience", icon: Clock },
     { number: "1000+", label: "Happy Clients", icon: Users },
     { number: "2000+", label: "Cars Sold", icon: Award },
     { number: "24/7", label: "Support", icon: Shield },
@@ -89,10 +89,10 @@ const Home = () => {
           <div className="max-w-2xl">
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
               Explore the Road Ahead with{" "}
-              <span className="text-green-400">Premium Auto</span>
+              <span className="text-green-400">SML Cars</span>
             </h1>
             <p className="text-lg md:text-xl text-gray-200 mb-8 leading-relaxed">
-              90 years of legacy, thousands of happy customers & the same old
+              15+ Years of legacy, thousands of happy customers & the same old
               trust.
             </p>
             <div className="flex flex-wrap gap-4">
@@ -143,7 +143,7 @@ const Home = () => {
         <div className="container mx-auto px-6 lg:px-12">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Why <span className="text-green-600">Premium Auto</span>?
+              Why <span className="text-green-600">SML Cars</span>?
             </h2>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
               Experience excellence in automotive service with decades of

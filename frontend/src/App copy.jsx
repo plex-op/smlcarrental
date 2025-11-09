@@ -110,7 +110,7 @@ function AppContent() {
       {/* Navbar */}
       <nav className="bg-white shadow-md p-4 flex flex-wrap items-center justify-between">
         <div className="flex items-center gap-4">
-          <span className="text-xl font-bold text-black">🚗 Premium Auto</span>
+          <span className="text-xl font-bold text-black">🚗 SML Cars</span>
           <button
             className={`px-3 py-1 rounded hover:bg-gray-200 ${
               currentView === "customer" ? "bg-gray-200" : ""
@@ -189,7 +189,7 @@ function AppContent() {
       <footer className="bg-gray-100 py-8 mt-auto">
         <div className="container mx-auto px-4 grid md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-2">Premium Auto</h3>
+            <h3 className="text-lg font-semibold mb-2">SML Cars</h3>
             <p className="text-gray-600">
               Your trusted partner in luxury automotive excellence
             </p>
@@ -232,7 +232,7 @@ function AppContent() {
           </div>
         </div>
         <div className="text-center text-gray-500 mt-6">
-          &copy; 2024 Premium Auto Dealership. All rights reserved.
+          &copy; 2024 SML Cars Dealership. All rights reserved.
         </div>
       </footer>
     </div>

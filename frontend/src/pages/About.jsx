@@ -5,7 +5,7 @@ const About = () => {
     {
       icon: Shield,
       title: "Trust & Integrity",
-      desc: "Built on 90 years of honest dealings and transparent practices.",
+      desc: "Built on 15+ Years of honest dealings and transparent practices.",
     },
     {
       icon: Heart,
@@ -25,17 +25,17 @@ const About = () => {
   ];
 
   const milestones = [
-    { year: "1934", event: "Premium Auto Founded" },
+    { year: "1934", event: "SML Cars Founded" },
     { year: "1970", event: "Expanded to 5 Locations" },
     { year: "1995", event: "Introduced Quality Certification" },
     { year: "2010", event: "Reached 1000+ Happy Customers" },
-    { year: "2024", event: "Celebrating 90 Years of Excellence" },
+    { year: "2024", event: "Celebrating 15+ Years of Excellence" },
   ];
 
   const achievements = [
     "Over 2000 cars sold",
     "1000+ satisfied customers",
-    "90 years of legacy",
+    "15+ Years of legacy",
     "100% quality certified vehicles",
     "24/7 customer support",
     "Industry-leading warranty programs",
@@ -47,7 +47,7 @@ const About = () => {
       <section className="relative bg-gradient-to-r from-green-50 via-white to-green-50 py-20">
         <div className="container mx-auto px-6 lg:px-12 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            About <span className="text-green-600">Premium Auto</span>
+            About <span className="text-green-600">SML Cars</span>
           </h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             A legacy of trust, excellence, and commitment to automotive
@@ -65,7 +65,7 @@ const About = () => {
             </h2>
             <div className="space-y-4 text-gray-600 leading-relaxed">
               <p>
-                Welcome to Premium Auto, your trusted partner in finding the
+                Welcome to SML Cars, your trusted partner in finding the
                 perfect vehicle. Since 1934, we've been serving our community
                 with dedication, integrity, and an unwavering commitment to
                 quality.
@@ -83,7 +83,7 @@ const About = () => {
                 beyond the sale.
               </p>
               <p>
-                Today, with 90 years of experience behind us, we continue to
+                Today, with 15+ Years of experience behind us, we continue to
                 uphold the same values that our founders established: honesty,
                 quality, and customer satisfaction above all else.
               </p>
@@ -97,7 +97,7 @@ const About = () => {
               className="rounded-2xl shadow-xl"
             />
             <div className="absolute -bottom-6 -left-6 bg-green-600 text-white p-6 rounded-xl shadow-lg">
-              <p className="text-4xl font-bold">90+</p>
+              <p className="text-4xl font-bold">15+</p>
               <p className="text-sm">Years of Excellence</p>
             </div>
           </div>
@@ -189,7 +189,7 @@ const About = () => {
 
             <div className="mt-12 text-center">
               <p className="text-xl mb-6">
-                Ready to experience the Premium Auto difference?
+                Ready to experience the SML Cars difference?
               </p>
               <a
                 href="/contact"

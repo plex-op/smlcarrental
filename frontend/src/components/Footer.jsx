@@ -6,9 +6,9 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-8 mb-10">
           {/* Brand Info */}
           <div>
-            <h3 className="text-white text-xl font-bold mb-4">Premium Auto</h3>
+            <h3 className="text-white text-xl font-bold mb-4">SML Cars</h3>
             <p className="text-sm leading-relaxed">
-              90 years of legacy, thousands of happy customers & the same old
+              15+ Years of legacy, thousands of happy customers & the same old
               trust.
             </p>
           </div>
@@ -39,11 +39,11 @@ const Footer = () => {
           <div>
             <h4 className="text-white font-semibold mb-4">Contact Info</h4>
             <ul className="space-y-2 text-sm">
-              <li>123 Car Street, Auto City</li>
+              <li>44, 2nd Main Rd, behind DR. KAMAKSHI MEMORIAL HOSPITAL, Ram Nagar South Extension, Ram Nagar South, Extension, Chennai, Tamil Nadu 600100</li>
               <li>
                 Phone:{" "}
                 <a href="tel:+15551234567" className="hover:text-green-400">
-                  +1 (555) 123-4567
+                  +91 63841 84188
                 </a>
               </li>
               <li>
@@ -74,7 +74,7 @@ const Footer = () => {
         {/* Footer Bottom */}
         <div className="border-t border-gray-800 pt-8 text-center text-sm text-gray-400">
           <p>
-            © {new Date().getFullYear()} Premium Auto. All rights reserved. | 90
+            © {new Date().getFullYear()} SML Cars. All rights reserved. | 90
             years of trusted automotive excellence
           </p>
         </div>
