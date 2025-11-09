@@ -7,13 +7,12 @@ const fs = require("fs");
 const path = require("path");
 
 /* ====== APPWRITE CONFIG ====== */
-const APPWRITE_ENDPOINT = "https://fra.cloud.appwrite.io/v1";
-const APPWRITE_PROJECT  = "68ebb809003e6a0121ab";
-const APPWRITE_API_KEY  = "standard_c417344b9b41b164f6ca7e4631db18761c0445ecb61e336cb58045634f4b9a75852d1252566fa880e20c00f4cd0288fcad6d41e9ca17577a536957407b313e33b237fd10fc075a97f4cb1b4e84afe2735df306c6a562e1d6b95acfa4424a7e2d5bc559685ef806abcfedb785e4102e1fc73363b2eda3e957eb1b94160c112aee";
-
-const DATABASE_ID   = "68ebb8ae0035c0a643c3";
-const COLLECTION_ID = "cars";
-const BUCKET_ID     = "690731870022fd0282bd";
+const APPWRITE_ENDPOINT = process.env.APPWRITE_ENDPOINT;
+const APPWRITE_PROJECT  = process.env.APPWRITE_PROJECT;
+const APPWRITE_API_KEY  = process.env.APPWRITE_API_KEY;
+const DATABASE_ID       = process.env.DATABASE_ID;
+const COLLECTION_ID     = process.env.COLLECTION_ID;
+const BUCKET_ID         = process.env.BUCKET_ID;
 
 /* ====== APPWRITE CLIENT ====== */
 const client = new Client()
@@ -25,8 +24,8 @@ const databases = new Databases(client);
 const storage   = new Storage(client);
 
 /* ====== EXPRESS SETUP ====== */
-const app  = express();
-const PORT = 5001;
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 // MIDDLEWARE MUST COME FIRST
 app.use(cors());
