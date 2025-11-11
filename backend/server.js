@@ -73,12 +73,17 @@ const requireAuth = (req, res, next) => {
 async function uploadOneToAppwrite(filePath, fileName) {
   if (!fs.existsSync(filePath)) throw new Error(`File not found: ${filePath}`);
 
-  // createReadStream is compatible with node-appwrite storage.createFile
   const stream = fs.createReadStream(filePath);
 
-  // upload to Appwrite
-  const uploaded = await storage.createFile(BUCKET_ID, ID.unique(), stream);
+  // ✅ Upload file with public read permission
+  const uploaded = await storage.createFile(
+    BUCKET_ID,
+    ID.unique(),
+    stream,
+    [Permission.read("any")] // 👈 important!
+  );
 
+  // ✅ Use Appwrite's public "view" endpoint
   const fileUrl = `${APPWRITE_ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${uploaded.$id}/view?project=${APPWRITE_PROJECT}`;
 
   return { id: uploaded.$id, url: fileUrl, name: fileName };
@@ -132,6 +137,15 @@ app.get("/api/profile", requireAuth, (req, res) => {
   res.json({ success: true, user: req.user });
 });
 
+// Add debug upload-test endpoint
+app.get("/api/debug/upload-test", (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Upload endpoint is working!',
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get("/api/debug/routes", (req, res) => {
   res.json({
     success: true,
@@ -140,6 +154,7 @@ app.get("/api/debug/routes", (req, res) => {
       "GET /api/health",
       "POST /api/login",
       "GET /api/profile",
+      "GET /api/debug/upload-test",
       "GET /api/cars",
       "POST /api/cars",
       "PUT /api/cars/:id",
@@ -171,53 +186,75 @@ app.get("/api/cars/:id", async (req, res) => {
 
 app.post("/api/cars", requireAuth, async (req, res) => {
   try {
-    const { brand, model, year, price, fuelType, imageUrl, images } = req.body || {};
+    const { brand, model, year, price, fuelType, imageUrl, images, mileage, color, transmission, owners, type, seatingCapacity, location, available, features } = req.body || {};
 
-    // Minimal required validation (mirror Appwrite schema)
-    if (!brand || !model || !year || !price || !fuelType || !imageUrl) {
-      return res.status(400).json({ success: false, error: "Missing required fields (brand, model, year, price, fuelType, imageUrl)" });
+    // Enhanced validation with all required fields
+    if (!brand || !model || !year || !price || !fuelType) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Missing required fields (brand, model, year, price, fuelType)" 
+      });
     }
 
     const carData = {
       brand: String(brand).substring(0, 64),
       model: String(model).substring(0, 64),
       year: parseInt(year, 10),
-      price: parseInt(price, 10),
+      price: parseFloat(price),
       fuelType: String(fuelType).substring(0, 32),
-      imageUrl: String(imageUrl).substring(0, 512),
+      imageUrl: imageUrl ? String(imageUrl).substring(0, 512) : "",
       images: Array.isArray(images) ? images.map(i => String(i).substring(0, 512)) : [],
-      available: true,
-      // createdAt: new Date().toISOString(),
+      mileage: mileage ? parseInt(mileage, 10) : 0,
+      color: color ? String(color).substring(0, 64) : "White",
+      transmission: transmission ? String(transmission).substring(0, 32) : "Manual",
+      owners: owners ? String(owners).substring(0, 32) : "1st Owner",
+      type: type ? String(type).substring(0, 32) : "Sedan",
+      seatingCapacity: seatingCapacity ? parseInt(seatingCapacity, 10) : 5,
+      location: location ? String(location).substring(0, 128) : "Main Branch",
+      available: available !== undefined ? Boolean(available) : true,
+      features: Array.isArray(features) ? features.map(f => String(f).substring(0, 64)) : [],
     };
 
-    // Create document with public read (safe). Do NOT pass invalid permission strings.
+    console.log("📝 Creating car with data:", carData);
+
     const result = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), carData, [Permission.read("any")]);
 
     res.json({ success: true, data: result });
   } catch (err) {
-    console.error("Create car error:", err);
+    console.error("❌ Create car error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
 app.put("/api/cars/:id", requireAuth, async (req, res) => {
   try {
-    // apply only allowed fields & constraints as needed
-    const updates = {};
     const body = req.body || {};
+    const updates = {};
 
+    // All fields that can be updated
     if (body.brand !== undefined) updates.brand = String(body.brand).substring(0, 64);
     if (body.model !== undefined) updates.model = String(body.model).substring(0, 64);
     if (body.year !== undefined) updates.year = parseInt(body.year, 10);
-    if (body.price !== undefined) updates.price = parseInt(body.price, 10);
+    if (body.price !== undefined) updates.price = parseFloat(body.price);
     if (body.fuelType !== undefined) updates.fuelType = String(body.fuelType).substring(0, 32);
     if (body.imageUrl !== undefined) updates.imageUrl = String(body.imageUrl).substring(0, 512);
     if (body.images !== undefined) updates.images = Array.isArray(body.images) ? body.images.map(i => String(i).substring(0,512)) : [];
+    if (body.mileage !== undefined) updates.mileage = parseInt(body.mileage, 10);
+    if (body.color !== undefined) updates.color = String(body.color).substring(0, 64);
+    if (body.transmission !== undefined) updates.transmission = String(body.transmission).substring(0, 32);
+    if (body.owners !== undefined) updates.owners = String(body.owners).substring(0, 32);
+    if (body.type !== undefined) updates.type = String(body.type).substring(0, 32);
+    if (body.seatingCapacity !== undefined) updates.seatingCapacity = parseInt(body.seatingCapacity, 10);
+    if (body.location !== undefined) updates.location = String(body.location).substring(0, 128);
     if (body.available !== undefined) updates.available = Boolean(body.available);
+    if (body.features !== undefined) updates.features = Array.isArray(body.features) ? body.features.map(f => String(f).substring(0, 64)) : [];
+
+    console.log("📝 Updating car with data:", updates);
 
     const result = await databases.updateDocument(DATABASE_ID, COLLECTION_ID, req.params.id, updates);
     res.json({ success: true, data: result });
   } catch (err) {
+    console.error("❌ Update car error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -227,6 +264,7 @@ app.delete("/api/cars/:id", requireAuth, async (req, res) => {
     await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, req.params.id);
     res.json({ success: true, message: "Car deleted" });
   } catch (err) {
+    console.error("❌ Delete car error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -246,21 +284,49 @@ app.post("/api/upload", requireAuth, upload.single("image"), async (req, res) =>
 });
 
 app.post("/api/upload-multiple", requireAuth, upload.array("images", 10), async (req, res) => {
-  if (!req.files || req.files.length === 0) return res.status(400).json({ success: false, error: "No files uploaded" });
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ success: false, error: "No files uploaded" });
+  }
 
   try {
     const results = [];
     for (const f of req.files) {
       try {
         const upl = await uploadOneToAppwrite(f.path, f.originalname);
-        results.push({ success: true, id: upl.id, url: upl.url, name: upl.name });
+        results.push({ 
+          success: true, 
+          id: upl.id, 
+          url: upl.url, 
+          name: upl.name 
+        });
+        console.log(`✅ Uploaded: ${f.originalname} -> ${upl.url}`);
       } catch (e) {
-        results.push({ success: false, name: f.originalname, error: e.message });
+        results.push({ 
+          success: false, 
+          name: f.originalname, 
+          error: e.message 
+        });
+        console.error(`❌ Failed to upload: ${f.originalname}`, e.message);
       }
     }
+
+    // Count successful uploads
+    const successfulUploads = results.filter(r => r.success === true).length;
+    const failedUploads = results.filter(r => r.success === false).length;
+    
+    console.log(`📊 Upload summary: ${successfulUploads} successful, ${failedUploads} failed`);
+
     cleanupFiles(req.files);
-    res.json({ success: true, total: results.length, files: results });
+    
+    res.json({ 
+      success: true, 
+      total: results.length,
+      successful: successfulUploads,
+      failed: failedUploads,
+      files: results 
+    });
   } catch (err) {
+    console.error("❌ Upload multiple error:", err);
     cleanupFiles(req.files);
     res.status(500).json({ success: false, error: err.message });
   }
@@ -268,7 +334,7 @@ app.post("/api/upload-multiple", requireAuth, upload.array("images", 10), async 
 
 /* ====== Error / 404 handlers ====== */
 app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err);
+  console.error("❌ Unhandled error:", err);
   res.status(500).json({ success: false, error: "Internal server error" });
 });
 

@@ -167,7 +167,7 @@ function AdminDashboard({ onLogout }) {
     }
   };
 
-  // Upload multiple images
+  // Upload multiple images - SIMPLIFIED VERSION
   const uploadMultiple = async (files) => {
     console.log("=== UPLOAD DEBUG START ===");
     
@@ -181,17 +181,6 @@ function AdminDashboard({ onLogout }) {
     
     if (!token) {
       throw new Error("No authentication token - please login again");
-    }
-
-    // Test endpoint first
-    try {
-      console.log("🔍 Testing upload endpoint...");
-      const testRes = await fetch(`${BACKEND_URL}/debug/upload-test`);
-      const testData = await testRes.json();
-      console.log("✅ Endpoint test:", testData.message);
-    } catch (testError) {
-      console.error("❌ Endpoint test failed:", testError);
-      throw new Error(`Upload endpoint not available: ${testError.message}`);
     }
 
     // Create FormData
@@ -208,7 +197,6 @@ function AdminDashboard({ onLogout }) {
         method: "POST",
         headers: { 
           Authorization: `Bearer ${token}`,
-          // IMPORTANT: No Content-Type header for FormData
         },
         body: formData,
       });
@@ -217,7 +205,7 @@ function AdminDashboard({ onLogout }) {
       console.log("📡 Response OK:", res.ok);
 
       const result = await res.json();
-      console.log("📄 Response data:", result);
+      console.log("📄 Full response:", result);
       
       if (!res.ok) {
         throw new Error(result?.error || `Upload failed with status ${res.status}`);
@@ -227,10 +215,33 @@ function AdminDashboard({ onLogout }) {
         throw new Error(result?.error || "Upload failed - no success in response");
       }
 
-      console.log("✅ Upload successful! URLs:", result.urls);
-      console.log("=== UPLOAD DEBUG END ===");
+      // SIMPLE FIX: Extract URLs from the successful files
+      let uploadedUrls = [];
       
-      return result.urls || [];
+      if (result.files && Array.isArray(result.files)) {
+        // Get URLs from successful uploads only
+        uploadedUrls = result.files
+          .filter(file => file.success === true && file.url)
+          .map(file => file.url);
+        
+        console.log("✅ Successful files:", uploadedUrls);
+        
+        // Log any failed files
+        const failedFiles = result.files.filter(file => file.success === false);
+        if (failedFiles.length > 0) {
+          console.warn("⚠️ Some files failed to upload:", failedFiles);
+          setError(`Warning: ${failedFiles.length} file(s) failed to upload. Check console for details.`);
+        }
+      }
+      
+      console.log("✅ Final uploaded URLs:", uploadedUrls);
+      
+      if (uploadedUrls.length === 0) {
+        throw new Error("No images were successfully uploaded. Please try again.");
+      }
+      
+      console.log("=== UPLOAD DEBUG END ===");
+      return uploadedUrls;
       
     } catch (error) {
       console.error("❌ Upload failed:", error);
@@ -240,51 +251,78 @@ function AdminDashboard({ onLogout }) {
   };
 
   // Test upload system function
- 
-const testUploadSystem = async () => {
-  try {
-    setError("🧪 Testing upload system...");
-    console.log("=== UPLOAD SYSTEM TEST ===");
-    
-    // Test 1: Backend health
-    console.log("1. Testing backend health...");
-    const healthRes = await fetch(`${BACKEND_URL}/health`);
-    const healthData = await healthRes.json();
-    console.log("Health:", healthData);
-    
-    if (!healthRes.ok) {
-      throw new Error(`Health check failed: ${healthData.error}`);
-    }
-    
-    // Test 2: Upload endpoint
-    console.log("2. Testing upload endpoint...");
-    const testRes = await fetch(`${BACKEND_URL}/debug/upload-test`);
-    const testData = await testRes.json();
-    console.log("Upload test:", testData);
-    
-    if (!testRes.ok) {
-      throw new Error(`Upload endpoint test failed: ${testData.error}`);
-    }
-    
-    setError(`✅ Upload system working! Backend is connected.`);
-    console.log("=== UPLOAD SYSTEM TEST COMPLETE ===");
-    
-  } catch (err) {
-    console.error("❌ Upload system test failed:", err);
-    setError(`❌ Upload test failed: ${err.message}`);
-  }
-};
-
-  // Debug function to test upload endpoint
-  const testUploadEndpoint = async () => {
+  const testUploadSystem = async () => {
     try {
-      setError("Testing upload endpoint...");
-      const token = getAuthToken();
+      setError("🧪 Testing upload system...");
+      console.log("=== UPLOAD SYSTEM TEST ===");
+      
+      // Test backend connection
+      console.log("1. Testing backend connection...");
+      const healthRes = await fetch(`${BACKEND_URL}/health`);
+      console.log("Backend status:", healthRes.status);
+      
+      if (!healthRes.ok) {
+        throw new Error(`Backend connection failed: ${healthRes.status}`);
+      }
+      
+      setError(`✅ Upload system ready! Backend is connected.`);
+      console.log("=== UPLOAD SYSTEM TEST COMPLETE ===");
+      
+    } catch (err) {
+      console.error("❌ Upload system test failed:", err);
+      setError(`❌ Upload test failed: ${err.message}`);
+    }
+  };
+
+  // Debug function to test backend connection
+  const testBackendConnection = async () => {
+    try {
+      setError("Testing backend connection...");
       const res = await fetch(`${BACKEND_URL}/health`);
-      const data = await res.json();
-      setError(`Backend status: ${data.success ? '✅ Connected' : '❌ Failed'}`);
+      const data = await res.json().catch(() => ({}));
+      setError(`Backend status: ${res.ok ? '✅ Connected' : '❌ Failed'}`);
     } catch (err) {
       setError(`❌ Backend connection failed: ${err.message}`);
+    }
+  };
+
+  // Debug function to see the exact file structure
+  const debugFileStructure = async () => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        setError("❌ No auth token - please login first");
+        return;
+      }
+
+      const testBlob = new Blob(['test image content'], { type: 'image/png' });
+      const testFile = new File([testBlob], 'debug-test.png', { type: 'image/png' });
+      
+      const formData = new FormData();
+      formData.append("images", testFile);
+      
+      console.log("🔍 Starting debug upload...");
+      const res = await fetch(`${BACKEND_URL}/upload-multiple`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      
+      const result = await res.json();
+      console.log("🔍 DEBUG - Full upload response:", result);
+      
+      if (result.files && result.files.length > 0) {
+        const firstFile = result.files[0];
+        console.log("🔍 DEBUG - First file object:", firstFile);
+        console.log("🔍 DEBUG - First file object keys:", Object.keys(firstFile));
+        console.log("🔍 DEBUG - First file URL property:", firstFile.url);
+      }
+      
+      setError(`🔍 Debug complete. Check console for response structure.`);
+      
+    } catch (err) {
+      console.error("Debug failed:", err);
+      setError(`❌ Debug failed: ${err.message}`);
     }
   };
 
@@ -385,9 +423,10 @@ const testUploadSystem = async () => {
       available: true,
       features: "",
     });
-    setImageFiles([]);
+    
     // Clean up object URLs to prevent memory leaks
     imagePreviews.forEach(url => URL.revokeObjectURL(url));
+    setImageFiles([]);
     setImagePreviews([]);
   };
 
@@ -411,7 +450,16 @@ const testUploadSystem = async () => {
       available: car.available !== undefined ? car.available : true,
       features: Array.isArray(car.features) ? car.features.join(", ") : (car.features || ""),
     });
+    
+    // Clean up any existing previews when editing
+    imagePreviews.forEach(url => URL.revokeObjectURL(url));
+    setImageFiles([]);
+    setImagePreviews([]);
+    
     setShowForm(true);
+    
+    // Scroll to top when form opens
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (carId) => {
@@ -468,6 +516,13 @@ const testUploadSystem = async () => {
     }
   };
 
+  // Clean up object URLs on unmount
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, []);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -517,7 +572,7 @@ const testUploadSystem = async () => {
           <h3 className="font-semibold text-yellow-800 mb-2">🔧 Debug Tools</h3>
           <div className="flex flex-wrap gap-2">
             <button 
-              onClick={testUploadEndpoint}
+              onClick={testBackendConnection}
               className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
             >
               Test Backend
@@ -527,6 +582,12 @@ const testUploadSystem = async () => {
               className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600"
             >
               Test Upload System
+            </button>
+            <button 
+              onClick={debugFileStructure}
+              className="bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-600"
+            >
+              Debug File Structure
             </button>
             <button 
               onClick={fetchCars}
@@ -558,9 +619,11 @@ const testUploadSystem = async () => {
         {/* Error/Success Messages */}
         {error && (
           <div className={`mb-6 border rounded-lg p-4 ${
-            error.includes("✅") 
+            error.includes("✅") || error.includes("🔍")
               ? "bg-green-50 border-green-200 text-green-800" 
-              : "bg-red-50 border-red-200 text-red-800"
+              : error.includes("❌")
+              ? "bg-red-50 border-red-200 text-red-800"
+              : "bg-blue-50 border-blue-200 text-blue-800"
           }`}>
             <div className="flex justify-between items-center">
               <span>{error}</span>
